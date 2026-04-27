@@ -1,1 +1,617 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Kavárna Pohoda | Karlovy Vary | relax & káva</title>
+  <!-- Google Fonts + Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Leaflet for premium map (no overflow) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #fcf9f2;
+      color: #2a2418;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* ----- MEGA INTRO ANIMATION (coffee steam + zen) ----- */
+    .intro-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 40% 30%, #e7dcc8, #b58b5a);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: opacity 1s cubic-bezier(0.2, 0.9, 0.4, 1.2), visibility 0s 1.2s;
+      backdrop-filter: blur(3px);
+    }
+
+    .intro-splash.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .coffee-animation {
+      display: flex;
+      gap: 20px;
+      font-size: 5rem;
+      filter: drop-shadow(0 15px 20px rgba(0,0,0,0.2));
+      animation: swirlCup 1.7s infinite alternate ease-in-out;
+    }
+
+    @keyframes swirlCup {
+      0% { transform: translateY(0px) rotate(0deg); filter: drop-shadow(0 0 0 #cea77b);}
+      100% { transform: translateY(-25px) rotate(6deg); filter: drop-shadow(0 15px 20px #906f42);}
+    }
+
+    .splash-title {
+      font-size: 3.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #3d2a19, #704e28);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: titleBreathing 1.4s infinite alternate;
+    }
+
+    @keyframes titleBreathing {
+      0% { text-shadow: 0 0 0px #f7e3c0; opacity: 0.9; }
+      100% { text-shadow: 0 0 15px #ffdd99; opacity: 1; }
+    }
+
+    .splash-sub {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #331f0e;
+      background: rgba(255,247,235,0.5);
+      padding: 8px 24px;
+      border-radius: 60px;
+    }
+
+    /* main site entrance */
+    .main-site {
+      opacity: 0;
+      transform: scale(0.98) translateY(25px);
+      transition: opacity 0.9s ease 0.2s, transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .main-site.visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* navbar cozy glass */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(250, 242, 228, 0.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid #eedbbc;
+      padding: 1rem 0;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .nav-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #a5682c;
+    }
+
+    .logo i {
+      background: #ffd8b0;
+      padding: 8px;
+      border-radius: 50%;
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      background: #fff3e6;
+      padding: 6px 16px;
+      border-radius: 60px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: #5f3c1a;
+    }
+
+    .lang-btn.active {
+      background: #b45f2b;
+      color: white;
+    }
+
+    /* hero */
+    .hero {
+      background: linear-gradient(115deg, #fff5e8, #feebd6);
+      padding: 80px 0;
+      position: relative;
+    }
+    .hero:after {
+      content: "☕🍰";
+      font-size: 180px;
+      opacity: 0.07;
+      position: absolute;
+      bottom: 0;
+      right: 10px;
+      pointer-events: none;
+    }
+    .hero-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 45px;
+    }
+    .hero-content {
+      flex: 1.2;
+    }
+    .hero-badge {
+      background: #e7c8a4;
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 80px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+    h1 {
+      font-size: 3.8rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 15px;
+    }
+    .text-cozy {
+      color: #b46228;
+    }
+    .cta-btn {
+      background: #c1732e;
+      padding: 14px 34px;
+      border-radius: 44px;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 28px;
+      transition: 0.2s;
+      box-shadow: 0 6px 14px #c8823f60;
+      text-decoration: none;
+      color: white;
+      border: none;
+    }
+    .cta-btn:hover {
+      background: #995d24;
+      transform: translateY(-3px);
+    }
+
+    /* cards */
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #3f2a12;
+    }
+    .section-sub {
+      color: #997652;
+      margin-bottom: 3rem;
+      font-weight: 500;
+    }
+    .grid-adv, .grid-services, .grid-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+      margin: 40px 0 30px;
+    }
+    .card-peace {
+      background: #ffffffdb;
+      backdrop-filter: blur(2px);
+      border-radius: 36px;
+      padding: 32px 20px;
+      transition: all 0.25s;
+      border: 1px solid #ffe3c2;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+    }
+    .card-peace:hover {
+      transform: translateY(-8px);
+      border-color: #dba459;
+      background: #fffbf5;
+      box-shadow: 0 20px 28px rgba(107, 66, 28, 0.1);
+    }
+    .card-peace i {
+      font-size: 2.7rem;
+      color: #cc842f;
+      margin-bottom: 20px;
+    }
+    .price-badge {
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: #c2661c;
+      margin-top: 18px;
+      display: inline-block;
+    }
+    /* map & info */
+    .map-wrapper {
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 22px 32px rgba(0,0,0,0.08);
+      height: 380px;
+      border: 2px solid #fbefdf;
+    }
+    #pohodaMap {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+    }
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      background: #fff8ef;
+      border-radius: 60px;
+      margin-top: 32px;
+      padding: 20px 32px;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .info-chip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+    .info-chip i {
+      font-size: 1.6rem;
+      color: #c67a30;
+    }
+    footer {
+      text-align: center;
+      padding: 32px;
+      background: #efdfcd;
+      color: #5d3f1f;
+      font-weight: 500;
+    }
+    @media (max-width: 780px) {
+      h1 { font-size: 2.5rem; }
+      .section-title { font-size: 2rem; }
+      .info-row { flex-direction: column; align-items: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MEGA INTRO ANIMATION -->
+<div class="intro-splash" id="introSplash">
+  <div class="coffee-animation">
+    <i class="fas fa-mug-hot"></i>
+    <i class="fas fa-leaf"></i>
+    <i class="fas fa-heart"></i>
+  </div>
+  <div class="splash-title">Kavárna Pohoda</div>
+  <div class="splash-sub">✨ klid • káva • okamžiky štěstí</div>
+</div>
+
+<main class="main-site" id="mainSite">
+  <nav class="navbar">
+    <div class="container nav-flex">
+      <div class="logo"><i class="fas fa-coffee"></i> Pohoda</div>
+      <div class="lang-switch" id="langSwitch">
+        <button class="lang-btn active" data-lang="cs">Čeština</button>
+        <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="de">Deutsch</button>
+        <button class="lang-btn" data-lang="ru">Русский</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- INTRO PAGE / HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge" data-translate="heroBadge">🍃 domácí atmosféra</div>
+        <h1><span data-translate="heroTitle1">Tvoje pohoda</span><br><span class="text-cozy" data-translate="heroTitle2">v Karlových Varech</span></h1>
+        <p data-translate="heroDesc" style="font-size:1.1rem; max-width:550px;">Stylová kavárna s vůní čerstvé kávy, domácími zákusky a útulným posezením. Ideální místo pro setkání, práci i odpočinek.</p>
+        <a href="#menuSection" class="cta-btn" data-translate="heroBtn">🍰 Objevte náš sortiment →</a>
+      </div>
+      <div style="flex:0.7; text-align:center;">
+        <i class="fas fa-couch" style="font-size: 6rem; opacity: 0.2; color:#a66220;"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADVANTAGES -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="advTitle">✨ Proč právě Pohoda</h2>
+      <div class="section-sub" data-translate="advSub">Místo, kde se zastaví čas a potkáte se s chutí</div>
+      <div class="grid-adv">
+        <div class="card-peace"><i class="fas fa-seedling"></i><h3 data-translate="adv1Title">Ručně pražená káva</h3><p data-translate="adv1Desc">Specialty coffee z etických zdrojů, pražíme lokálně.</p></div>
+        <div class="card-peace"><i class="fas fa-cake-candles"></i><h3 data-translate="adv2Title">Domácí dezerty</h3><p data-translate="adv2Desc">Dorty, cheesecake, raw tyčinky a koláče od naší cukrářky.</p></div>
+        <div class="card-peace"><i class="fas fa-tree"></i><h3 data-translate="adv3Title">Klidná zahrada</h3><p data-translate="adv3Desc">Venkovní sezení v zeleni, ideální na snídaně i odpolední kávu.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES (doplňkové služby) -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="servicesTitle">☕️ Služby pro radost</h2>
+      <div class="section-sub" data-translate="servicesSub">Co u nás zažijete</div>
+      <div class="grid-services">
+        <div class="card-peace"><i class="fas fa-wifi"></i><h3 data-translate="serv1">Work & relax zóna</h3><p data-translate="serv1Desc">Rychlá wifi, zásuvky u stolů, tichá hudba.</p></div>
+        <div class="card-peace"><i class="fas fa-glass-cheers"></i><h3 data-translate="serv2">Firemní akce & oslavy</h3><p data-translate="serv2Desc">Možnost pronájmu prostoru pro malé skupiny.</p></div>
+        <div class="card-peace"><i class="fas fa-hand-holding-heart"></i><h3 data-translate="serv3">Kávový catering</h3><p data-translate="serv3Desc">Připravíme kávový bar pro vaše firemní akce.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSORTMENT (menu sladké i slané) -->
+  <section id="menuSection">
+    <div class="container">
+      <h2 class="section-title" data-translate="assortTitle">🍪 Lahůdky sortimentu</h2>
+      <div class="section-sub" data-translate="assortSub">Ranní pečivo, dezerty i snídaňové mísy</div>
+      <div class="grid-menu">
+        <div class="card-peace"><i class="fas fa-mug-hot"></i><h3 data-translate="item1">Signature latte</h3><p data-translate="item1Desc">Latté s karamelem, skořicí nebo oříškovým sirupem.</p><span class="price-badge">75 Kč</span></div>
+        <div class="card-peace"><i class="fas fa-apple-alt"></i><h3 data-translate="item2">Domácí jablečný závin</h3><p data-translate="item2Desc">S vanilkovým krémem a vlašskými ořechy.</p><span class="price-badge">69 Kč</span></div>
+        <div class="card-peace"><i class="fas fa-bread-slice"></i><h3 data-translate="item3">Avokádový toast</h3><p data-translate="item3Desc">S vejcem, ředkvičkami a semínky.</p><span class="price-badge">135 Kč</span></div>
+        <div class="card-peace"><i class="fas fa-chocolate-bar"></i><h3 data-translate="item4">Brownie & ořechy</h3><p data-translate="item4Desc">Dvojitá čokoláda, vláčný střed.</p><span class="price-badge">59 Kč</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP SECTION + EXACT GOOGLE MAPS URL DATA -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="mapTitle">📍 Najdete nás tady</h2>
+      <div class="section-sub" data-translate="mapSub">Východní, Karlovy Vary - Drahovice, klidná čtvrť</div>
+      <div class="map-wrapper">
+        <div id="pohodaMap"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-chip"><i class="fas fa-location-dot"></i> <span data-translate="address">Východní, 360 01 Karlovy Vary 1-Drahovice</span></div>
+        <div class="info-chip"><i class="fas fa-phone-alt"></i> <a href="tel:+420720603708" style="color:#9e601f; text-decoration:none;">+420 720 603 708</a></div>
+        <div class="info-chip"><i class="fab fa-facebook"></i> <span>kavarnapohodakv</span></div>
+        <div class="info-chip"><i class="fas fa-clock"></i> <span data-translate="hours">Po–Ne: 11:00 – 19:00</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>🌿 Kavárna Pohoda — Káva, pohoda a přátelé | <span data-translate="footerText">Těšíme se na vaši návštěvu</span></p>
+  </footer>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ---------- MULTILINGUAL DATA (based on map location: Kavárna Pohoda) ----------
+  const locales = {
+    cs: {
+      heroBadge: "🍃 domácí atmosféra",
+      heroTitle1: "Tvoje pohoda",
+      heroTitle2: "v Karlových Varech",
+      heroDesc: "Stylová kavárna s vůní čerstvé kávy, domácími zákusky a útulným posezením. Ideální místo pro setkání, práci i odpočinek.",
+      heroBtn: "🍰 Objevte náš sortiment →",
+      advTitle: "✨ Proč právě Pohoda",
+      advSub: "Místo, kde se zastaví čas a potkáte se s chutí",
+      adv1Title: "Ručně pražená káva",
+      adv1Desc: "Specialty coffee z etických zdrojů, pražíme lokálně.",
+      adv2Title: "Domácí dezerty",
+      adv2Desc: "Dorty, cheesecake, raw tyčinky a koláče od naší cukrářky.",
+      adv3Title: "Klidná zahrada",
+      adv3Desc: "Venkovní sezení v zeleni, ideální na snídaně i odpolední kávu.",
+      servicesTitle: "☕️ Služby pro radost",
+      servicesSub: "Co u nás zažijete",
+      serv1: "Work & relax zóna",
+      serv1Desc: "Rychlá wifi, zásuvky u stolů, tichá hudba.",
+      serv2: "Firemní akce & oslavy",
+      serv2Desc: "Možnost pronájmu prostoru pro malé skupiny.",
+      serv3: "Kávový catering",
+      serv3Desc: "Připravíme kávový bar pro vaše firemní akce.",
+      assortTitle: "🍪 Lahůdky sortimentu",
+      assortSub: "Ranní pečivo, dezerty i snídaňové mísy",
+      item1: "Signature latte",
+      item1Desc: "Latté s karamelem, skořicí nebo oříškovým sirupem.",
+      item2: "Domácí jablečný závin",
+      item2Desc: "S vanilkovým krémem a vlašskými ořechy.",
+      item3: "Avokádový toast",
+      item3Desc: "S vejcem, ředkvičkami a semínky.",
+      item4: "Brownie & ořechy",
+      item4Desc: "Dvojitá čokoláda, vláčný střed.",
+      mapTitle: "📍 Najdete nás tady",
+      mapSub: "Východní, Karlovy Vary - Drahovice, klidná čtvrť",
+      address: "Východní, 360 01 Karlovy Vary 1-Drahovice",
+      hours: "Po–Ne: 11:00 – 19:00",
+      footerText: "Těšíme se na vaši návštěvu"
+    },
+    en: {
+      heroBadge: "🍃 homely atmosphere",
+      heroTitle1: "Your comfort",
+      heroTitle2: "in Karlovy Vary",
+      heroDesc: "A stylish café with fresh coffee, homemade desserts and cozy seating. Perfect for meetings, work or relaxation.",
+      heroBtn: "🍰 Discover our menu →",
+      advTitle: "✨ Why Pohoda",
+      advSub: "A place where time stops and flavor meets peace",
+      adv1Title: "Hand-roasted coffee",
+      adv1Desc: "Specialty coffee from ethical sources, roasted locally.",
+      adv2Title: "Homemade desserts",
+      adv2Desc: "Cakes, cheesecake, raw bars and pies from our pastry chef.",
+      adv3Title: "Peaceful garden",
+      adv3Desc: "Outdoor seating surrounded by greenery, perfect for breakfast or afternoon coffee.",
+      servicesTitle: "☕️ Joyful services",
+      servicesSub: "What you can experience",
+      serv1: "Work & relax zone",
+      serv1Desc: "Fast wifi, power sockets, calm background music.",
+      serv2: "Corporate events & parties",
+      serv2Desc: "Small venue rental for private groups.",
+      serv3: "Coffee catering",
+      serv3Desc: "We set up a coffee bar for your corporate events.",
+      assortTitle: "🍪 Delicacies menu",
+      assortSub: "Morning pastries, desserts & breakfast bowls",
+      item1: "Signature latte",
+      item1Desc: "Latte with caramel, cinnamon or hazelnut syrup.",
+      item2: "Homemade apple strudel",
+      item2Desc: "With vanilla cream and walnuts.",
+      item3: "Avocado toast",
+      item3Desc: "With egg, radishes and seeds.",
+      item4: "Brownie & nuts",
+      item4Desc: "Double chocolate, fudgy middle.",
+      mapTitle: "📍 Find us here",
+      mapSub: "Východní, Karlovy Vary - Drahovice, quiet area",
+      address: "Východní, 360 01 Karlovy Vary 1-Drahovice",
+      hours: "Mon–Sun: 11:00 – 19:00",
+      footerText: "We look forward to your visit"
+    },
+    de: {
+      heroBadge: "🍃 heimelige Atmosphäre",
+      heroTitle1: "Deine Auszeit",
+      heroTitle2: "in Karlsbad",
+      heroDesc: "Stilvolles Café mit frischem Kaffee, hausgemachten Kuchen und gemütlichen Sitzgelegenheiten. Ideal für Treffen, Arbeit oder Entspannung.",
+      heroBtn: "🍰 Entdecken Sie unser Sortiment →",
+      advTitle: "✨ Warum Pohoda",
+      advSub: "Ort, wo die Zeit stillsteht",
+      adv1Title: "Handgerösteter Kaffee",
+      adv1Desc: "Specialty Coffee aus ethischen Quellen, lokal geröstet.",
+      adv2Title: "Hausgemachte Desserts",
+      adv2Desc: "Kuchen, Cheesecake, Rohkostriegel, unsere Konditorin zaubert.",
+      adv3Title: "Ruhiger Garten",
+      adv3Desc: "Draußen im Grünen, ideal für Frühstück und Kaffeepause.",
+      servicesTitle: "☕️ Services",
+      servicesSub: "Was Sie erwartet",
+      serv1: "Work & relax Zone",
+      serv1Desc: "Schnelles WLAN, Steckdosen, leise Hintergrundmusik.",
+      serv2: "Firmenevents & Feiern",
+      serv2Desc: "Raum für kleine Gruppen mietbar.",
+      serv3: "Coffee Catering",
+      serv3Desc: "Wir richten eine Kaffeebar für Ihre Firmenveranstaltung.",
+      assortTitle: "🍪 Leckereien",
+      assortSub: "Frühstücksgebäck, Desserts & mehr",
+      item1: "Signature Latte",
+      item1Desc: "Latte mit Karamell, Zimt oder Haselnuss.",
+      item2: "Hausgemachter Apfelstrudel",
+      item2Desc: "Mit Vanillecreme und Walnüssen.",
+      item3: "Avocado-Toast",
+      item3Desc: "Mit Ei, Radieschen und Samen.",
+      item4: "Brownie & Nüsse",
+      item4Desc: "Doppelte Schokolade, saftig.",
+      mapTitle: "📍 Hier finden Sie uns",
+      mapSub: "Východní, Karlovy Vary - Drahovice",
+      address: "Východní, 360 01 Karlovy Vary 1-Drahovice",
+      hours: "Mo–So: 11:00 – 19:00",
+      footerText: "Wir freuen uns auf Ihren Besuch"
+    },
+    ru: {
+      heroBadge: "🍃 домашняя атмосфера",
+      heroTitle1: "Твоя уютная",
+      heroTitle2: "Pohoda в Карловых Варах",
+      heroDesc: "Стильная кофейня с ароматным кофе, домашней выпечкой и уютными местами. Идеально для встреч, работы и отдыха.",
+      heroBtn: "🍰 Посмотреть меню →",
+      advTitle: "✨ Почему Pohoda",
+      advSub: "Место, где останавливается время",
+      adv1Title: "Кофе ручной обжарки",
+      adv1Desc: "Спешелти кофе из этичных источников, обжарка локальная.",
+      adv2Title: "Домашние десерты",
+      adv2Desc: "Торты, чизкейки, сыроедческие батончики от нашего кондитера.",
+      adv3Title: "Тихий сад",
+      adv3Desc: "Уличные места в зелени для завтрака или кофе.",
+      servicesTitle: "☕️ Наши услуги",
+      servicesSub: "Что вы найдете у нас",
+      serv1: "Зона Work & relax",
+      serv1Desc: "Быстрый Wi-Fi, розетки, фоновая музыка.",
+      serv2: "Корпоративы и праздники",
+      serv2Desc: "Аренда помещения для небольших групп.",
+      serv3: "Кофе-кейтеринг",
+      serv3Desc: "Организуем кофейный бар на вашем мероприятии.",
+      assortTitle: "🍪 Ассортимент",
+      assortSub: "Выпечка, десерты, завтраки",
+      item1: "Signature латте",
+      item1Desc: "Латте с карамелью, корицей или фундуком.",
+      item2: "Домашний яблочный штрудель",
+      item2Desc: "С ванильным кремом и грецкими орехами.",
+      item3: "Тост с авокадо",
+      item3Desc: "С яйцом, редисом и семенами.",
+      item4: "Брауни с орехами",
+      item4Desc: "Двойной шоколад, влажная текстура.",
+      mapTitle: "📍 Где нас найти",
+      mapSub: "Východní, Карловы Вары - Драговице",
+      address: "Východní, 360 01 Karlovy Vary 1-Drahovice",
+      hours: "Пн–Вс: 11:00 – 19:00",
+      footerText: "Ждём вас в гости"
+    }
+  };
+
+  let currentLang = 'cs';
+
+  function setLanguage(lang) {
+    const dict = locales[lang];
+    if (!dict) return;
+    document.querySelectorAll('[data-translate]').forEach(el => {
+      const key = el.getAttribute('data-translate');
+      if (dict[key]) el.innerText = dict[key];
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      if(btn.dataset.lang === lang) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+    currentLang = lang;
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+  });
+
+  // Intro animation hide + Leaflet map init (Kavárna Pohoda: Východní, Karlovy Vary)
+  window.addEventListener('load', () => {
+    const introDiv = document.getElementById('introSplash');
+    const mainDiv = document.getElementById('mainSite');
+    setTimeout(() => {
+      introDiv.classList.add('hide');
+      mainDiv.classList.add('visible');
+    }, 1700);
+
+    // coordinates derived from map location (Východní, Karlovy Vary-Drahovice)
+    const map = L.map('pohodaMap').setView([50.2351, 12.8876], 16);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB'
+    }).addTo(map);
+    const marker = L.marker([50.2352, 12.8877]).addTo(map);
+    marker.bindPopup('<b>☕ Kavárna Pohoda</b><br>Východní, Karlovy Vary<br>⏰ 11:00–19:00').openPopup();
+    setTimeout(() => map.invalidateSize(), 250);
+    window.addEventListener('resize', () => map.invalidateSize());
+  });
+</script>
+</body>
+</html>
